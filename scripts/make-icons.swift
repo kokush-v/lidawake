@@ -28,7 +28,14 @@ func clean(_ svg: String, stroke: String) -> String {
     return s
 }
 
-func render(_ image: NSImage, scale: Int, canvas: CGFloat, glyph: CGFloat) -> Data? {
+/// Optical centering for the panel hero, in points (positive y = up): the cup's handle makes it look left-heavy,
+/// and a triangle's weight sits low, so its bounding box centered still looks too high.
+let panelNudge: [String: CGSize] = [
+    "awake": CGSize(width: 1, height: 0),
+    "error": CGSize(width: 0, height: -1.25),
+]
+
+func render(_ image: NSImage, scale: Int, canvas: CGFloat, glyph: CGFloat, nudge: CGSize = .zero) -> Data? {
     let px = Int(canvas) * scale
     guard let rep = NSBitmapImageRep(
         bitmapDataPlanes: nil, pixelsWide: px, pixelsHigh: px, bitsPerSample: 8, samplesPerPixel: 4,
@@ -41,7 +48,7 @@ func render(_ image: NSImage, scale: Int, canvas: CGFloat, glyph: CGFloat) -> Da
     let size = image.size
     let k = min(glyph / size.width, glyph / size.height)
     let w = size.width * k, h = size.height * k
-    image.draw(in: NSRect(x: (canvas - w) / 2, y: (canvas - h) / 2, width: w, height: h),
+    image.draw(in: NSRect(x: (canvas - w) / 2 + nudge.width, y: (canvas - h) / 2 + nudge.height, width: w, height: h),
                from: .zero, operation: .sourceOver, fraction: 1)
     NSGraphicsContext.restoreGraphicsState()
     return rep.representation(using: .png, properties: [:])
@@ -57,7 +64,8 @@ for name in names {
         for scale in [1, 2] {
             let base = name + t.suffix
             let file = t.dir.appendingPathComponent(scale == 1 ? "\(base).png" : "\(base)@2x.png")
-            guard let data = render(image, scale: scale, canvas: t.canvas, glyph: t.glyph) else {
+            guard let data = render(image, scale: scale, canvas: t.canvas, glyph: t.glyph,
+                              nudge: t.suffix == "-large" ? (panelNudge[name] ?? .zero) : .zero) else {
                 print("FAILED to render \(base)"); exit(1)
             }
             try data.write(to: file)
