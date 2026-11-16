@@ -11,6 +11,8 @@ func glyph(_ name: String) -> NSImage {
     guard var text = try? String(contentsOf: url, encoding: .utf8) else { print("FAILED to read \(name).svg"); exit(1) }
     text = text.replacingOccurrences(of: #"<rect[^>]*fill="white"[^>]*/>"#, with: "", options: .regularExpression)
     text = text.replacingOccurrences(of: #"#[0-9A-Fa-f]{6}"#, with: "#FFFFFF", options: .regularExpression)
+    text = text.replacingOccurrences(of: "currentColor", with: "#FFFFFF")
+    text = text.replacingOccurrences(of: "width=\"24\"", with: "width=\"1024\"").replacingOccurrences(of: "height=\"24\"", with: "height=\"1024\"")  // SVGs rasterize at their own size: render large so scaling down stays sharp
     guard let image = NSImage(data: Data(text.utf8)), image.size.width > 0 else { print("FAILED to load \(name).svg"); exit(1) }
     return image
 }

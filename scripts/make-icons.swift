@@ -11,16 +11,20 @@ try? FileManager.default.createDirectory(at: panelOut, withIntermediateDirectori
 
 let names = ["awake", "sleep", "blocked", "error"]
 /// A rendering target: canvas size in points and the glyph box inside it.
-struct Target { let dir: URL; let suffix: String; let canvas: CGFloat; let glyph: CGFloat }
+struct Target { let dir: URL; let suffix: String; let canvas: CGFloat; let glyph: CGFloat; let stroke: String }
 let targets = [
-    Target(dir: out, suffix: "", canvas: 18, glyph: 15),                // menu bar
-    Target(dir: panelOut, suffix: "-large", canvas: 48, glyph: 40),     // panel hero
+    // Menu bar: 1.5 px per SVG unit at @2x, so the 2-unit stroke is exactly 3 px (a heavier stroke clogs the cup).
+    Target(dir: out, suffix: "", canvas: 18, glyph: 18, stroke: "2"),
+    Target(dir: panelOut, suffix: "-large", canvas: 48, glyph: 40, stroke: "2"),  // panel hero
 ]
 
-func clean(_ svg: String) -> String {
+func clean(_ svg: String, stroke: String) -> String {
     var s = svg
+    s = s.replacingOccurrences(of: "stroke-width=\"2\"", with: "stroke-width=\"\(stroke)\"")
     s = s.replacingOccurrences(of: #"<rect[^>]*fill="white"[^>]*/>"#, with: "", options: .regularExpression)
     s = s.replacingOccurrences(of: #"#[0-9A-Fa-f]{6}"#, with: "#000000", options: .regularExpression)
+    s = s.replacingOccurrences(of: "currentColor", with: "#000000")
+    s = s.replacingOccurrences(of: "width=\"24\"", with: "width=\"1024\"").replacingOccurrences(of: "height=\"24\"", with: "height=\"1024\"")  // SVGs rasterize at their own size: render large so scaling down stays sharp
     return s
 }
 
@@ -45,11 +49,11 @@ func render(_ image: NSImage, scale: Int, canvas: CGFloat, glyph: CGFloat) -> Da
 
 for name in names {
     let src = root.appendingPathComponent("\(name).svg")
-    guard let text = try? String(contentsOf: src, encoding: .utf8),
-          let image = NSImage(data: Data(clean(text).utf8)), image.size.width > 0 else {
-        print("FAILED to load \(name).svg"); exit(1)
-    }
+    guard let text = try? String(contentsOf: src, encoding: .utf8) else { print("FAILED to read \(name).svg"); exit(1) }
     for t in targets {
+        guard let image = NSImage(data: Data(clean(text, stroke: t.stroke).utf8)), image.size.width > 0 else {
+            print("FAILED to load \(name).svg"); exit(1)
+        }
         for scale in [1, 2] {
             let base = name + t.suffix
             let file = t.dir.appendingPathComponent(scale == 1 ? "\(base).png" : "\(base)@2x.png")

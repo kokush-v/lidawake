@@ -13,7 +13,7 @@ enum IconAssets {
     /// Larger template image for the panel's hero circle (`<name>-large`).
     static func heroImage(for icon: IconState) -> NSImage? {
         guard let image = Bundle.main.image(forResource: icon.assetName + "-large") else { return nil }
-        image.size = NSSize(width: 40, height: 40)
+        image.size = NSSize(width: 48, height: 48)  // the PNG canvas size: drawn 1:1, no resampling
         image.isTemplate = true
         return image
     }
