@@ -12,7 +12,7 @@
 <br>
 
 <div align="center">
-  <img src="docs/images/panel-awake.png" width="351" alt="LidAwake panel in Awake mode">
+  <img src="docs/images/panel-awake.png" width="349" alt="LidAwake panel in Awake mode">
 </div>
 
 <br>
