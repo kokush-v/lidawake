@@ -44,7 +44,7 @@ struct SettingsSection: View {
 
     @ViewBuilder private func accessRows(rule: String) -> some View {
         Button {
-            withAnimation(motion) { model.accessExpanded.toggle() }
+            model.toggle(\.accessExpanded, animation: motion)
         } label: {
             HStack(spacing: PanelTheme.rowSpacing) {
                 IconTile(color: .green, image: Image(nsImage: lockImage))

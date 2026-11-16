@@ -25,9 +25,16 @@ enum PanelTheme {
     static let groupFill = Color.primary.opacity(0.07)
     static let groupCorner: CGFloat = 12
 
+    static let width: CGFloat = 340
+    /// Fixed height of the SwiftUI root, taller than the panel can get (see `StatusItemController.setPanel`).
+    static let canvasHeight: CGFloat = 1000
+
     /// Gap between sections; also the horizontal inset of a row.
     static let spacing: CGFloat = 12
     static let rowMinHeight: CGFloat = 44
     /// Gap between a row's icon tile and its label.
     static let rowSpacing: CGFloat = 10
+
+    /// Length of every panel transition; the popover resizes over the same time.
+    static let motionDuration: TimeInterval = 0.25
 }

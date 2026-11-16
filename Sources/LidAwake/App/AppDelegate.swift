@@ -20,8 +20,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let controller = StatusItemController()
         statusItemController = controller
         let host = NSHostingController(rootView: PanelView(model: panelModel))
-        host.sizingOptions = .preferredContentSize  // the popover follows the panel's height when rows expand
-        controller.setPanel(host)
+        host.sizingOptions = []  // the popover's height is driven by `onContentHeight`, not by the hosting view
+        panelModel.onContentHeight = { [weak controller] height, duration in
+            controller?.setContentHeight(height, duration: duration)
+        }
+        controller.setPanel(host, size: NSSize(width: PanelTheme.width, height: 400), canvasHeight: PanelTheme.canvasHeight)
+        host.view.layoutSubtreeIfNeeded()  // measures the content, so the first open already has the right height
         controller.canToggle = { [model] in model.snapshot.canToggle }
         controller.onToggle = { [model] in model.toggle() }
         controller.onOpenPanel = { [weak self] in self?.openPanel() }
@@ -34,7 +38,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         model.onChange = { [panelModel] snapshot in
             DispatchQueue.main.async {
                 controller.update(icon: snapshot.icon)
-                panelModel.snapshot = snapshot
+                panelModel.apply(snapshot)
             }
         }
         model.refresh()  // show the real state right after launch

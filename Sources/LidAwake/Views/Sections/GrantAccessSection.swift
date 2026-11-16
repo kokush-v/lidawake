@@ -20,7 +20,7 @@ struct GrantAccessSection: View {
             .buttonStyle(.plain)
 
             Button {
-                withAnimation(motion) { model.commandShown.toggle() }
+                model.toggle(\.commandShown, animation: motion)
             } label: {
                 HStack(spacing: 4) {
                     Text("Show command")
