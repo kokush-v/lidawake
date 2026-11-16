@@ -3,6 +3,7 @@ build/
 *.app
 .DS_Store
 Sources/LidAwakeCore/EmbeddedScripts.generated.swift
+.superpowers/
 .claude/
 .specify/
 specs/
