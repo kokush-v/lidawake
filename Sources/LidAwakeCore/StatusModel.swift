@@ -62,7 +62,8 @@ public final class StatusModel {
     /// Reads the real state periodically so changes made outside the app show up.
     /// The timer only reads; it never changes any setting.
     public func startPolling(interval: TimeInterval = 5) {
-        queue.async {
+        queue.async { [weak self] in
+            guard let self else { return }
             self.timer?.cancel()
             let t = DispatchSource.makeTimerSource(queue: self.queue)
             t.schedule(deadline: .now() + interval, repeating: interval, leeway: .milliseconds(100))
