@@ -2,7 +2,7 @@
 build/
 *.app
 .DS_Store
-Sources/LidAwakeCore/EmbeddedScripts.generated.swift
+Sources/LidAwakeCore/Services/EmbeddedScripts.generated.swift
 .superpowers/
 .claude/
 .specify/
