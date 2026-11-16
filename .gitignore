@@ -1,0 +1,8 @@
+.build/
+build/
+*.app
+.DS_Store
+Sources/LidAwakeCore/EmbeddedScripts.generated.swift
+.claude/
+.specify/
+specs/
