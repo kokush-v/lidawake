@@ -138,5 +138,4 @@ swift scripts/make-app-icon.swift Resources      # regenerate the app icon
 
 ## License
 
-[MIT](LICENSE). Icons are from [Tabler Icons](https://tabler.io/icons) (MIT, © Paweł Kuna); see
-[`Resources/Icons/README.md`](Resources/Icons/README.md).
+[MIT](LICENSE)

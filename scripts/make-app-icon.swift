@@ -73,8 +73,8 @@ func render(px: Int) -> Data? {
         .draw(in: NSRect(x: 100, y: 512, width: 824, height: 412), angle: -90)
     NSGraphicsContext.restoreGraphicsState()
 
-    draw(cup, center: NSPoint(x: 486, y: 478), box: 461, shadow: true)
-    draw(zzz, center: NSPoint(x: 692, y: 708), box: 190, shadow: true)
+    draw(cup, center: NSPoint(x: 512, y: 410), box: 470, shadow: true)
+    draw(zzz, center: NSPoint(x: 490, y: 718), box: 210, shadow: true)
 
     NSGraphicsContext.restoreGraphicsState()
     return rep.representation(using: .png, properties: [:])

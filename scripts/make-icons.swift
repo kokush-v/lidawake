@@ -11,12 +11,15 @@ try? FileManager.default.createDirectory(at: panelOut, withIntermediateDirectori
 
 let names = ["awake", "sleep", "blocked", "error"]
 /// A rendering target: canvas size in points and the glyph box inside it.
-struct Target { let dir: URL; let suffix: String; let canvas: CGFloat; let glyph: CGFloat; let stroke: String }
+struct Target { let dir: URL; let suffix: String; let canvas: CGFloat; let glyph: CGFloat; let fullBleedGlyph: CGFloat; let stroke: String }
 let targets = [
     // Menu bar: 1.5 px per SVG unit at @2x, so the 2-unit stroke is exactly 3 px (a heavier stroke clogs the cup).
-    Target(dir: out, suffix: "", canvas: 18, glyph: 18, stroke: "2"),
-    Target(dir: panelOut, suffix: "-large", canvas: 48, glyph: 40, stroke: "2"),  // panel hero
+    Target(dir: out, suffix: "", canvas: 18, glyph: 18, fullBleedGlyph: 17, stroke: "2"),
+    Target(dir: panelOut, suffix: "-large", canvas: 48, glyph: 40, fullBleedGlyph: 40, stroke: "2"),  // panel hero
 ]
+
+/// Sources whose artwork fills its whole viewBox (the Tabler icons keep a 2-unit margin, so they use `glyph`).
+let fullBleed: Set<String> = ["awake", "sleep"]
 
 func clean(_ svg: String, stroke: String) -> String {
     var s = svg
@@ -28,10 +31,9 @@ func clean(_ svg: String, stroke: String) -> String {
     return s
 }
 
-/// Optical centering for the panel hero, in points (positive y = up): the cup's handle makes it look left-heavy,
-/// and a triangle's weight sits low, so its bounding box centered still looks too high.
+/// Optical centering for the panel hero, in points (positive y = up): a triangle's weight sits low,
+/// so its bounding box centered still looks too high.
 let panelNudge: [String: CGSize] = [
-    "awake": CGSize(width: 1, height: 0),
     "error": CGSize(width: 0, height: -1.25),
 ]
 
@@ -55,16 +57,19 @@ func render(_ image: NSImage, scale: Int, canvas: CGFloat, glyph: CGFloat, nudge
 }
 
 for name in names {
-    let src = root.appendingPathComponent("\(name).svg")
-    guard let text = try? String(contentsOf: src, encoding: .utf8) else { print("FAILED to read \(name).svg"); exit(1) }
     for t in targets {
+        // The menu bar may use a simpler artwork (`<name>-menubar.svg`): fine detail does not survive 18 pt.
+        let menubarSource = root.appendingPathComponent("\(name)-menubar.svg")
+        let useMenubarSource = t.suffix.isEmpty && FileManager.default.fileExists(atPath: menubarSource.path)
+        let src = useMenubarSource ? menubarSource : root.appendingPathComponent("\(name).svg")
+        guard let text = try? String(contentsOf: src, encoding: .utf8) else { print("FAILED to read \(src.lastPathComponent)"); exit(1) }
         guard let image = NSImage(data: Data(clean(text, stroke: t.stroke).utf8)), image.size.width > 0 else {
             print("FAILED to load \(name).svg"); exit(1)
         }
         for scale in [1, 2] {
             let base = name + t.suffix
             let file = t.dir.appendingPathComponent(scale == 1 ? "\(base).png" : "\(base)@2x.png")
-            guard let data = render(image, scale: scale, canvas: t.canvas, glyph: t.glyph,
+            guard let data = render(image, scale: scale, canvas: t.canvas, glyph: fullBleed.contains(name) && !useMenubarSource ? t.fullBleedGlyph : t.glyph,
                               nudge: t.suffix == "-large" ? (panelNudge[name] ?? .zero) : .zero) else {
                 print("FAILED to render \(base)"); exit(1)
             }
