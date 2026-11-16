@@ -3,8 +3,9 @@ import Testing
 
 @Suite struct StatusModelTests {
     static let sudo = "/usr/bin/sudo"
-    static let c0 = "/usr/bin/sudo -n -l /usr/bin/pmset -a disablesleep 0"
-    static let c1 = "/usr/bin/sudo -n -l /usr/bin/pmset -a disablesleep 1"
+    static let list = "/usr/bin/sudo -n -l"
+    static let listingGranted = CommandResult(exitCode: 0, stdout: "    (root) NOPASSWD: /usr/bin/pmset -a disablesleep 0, /usr/bin/pmset -a disablesleep 1\n")
+    static let listingDenied = CommandResult(exitCode: 0, stdout: "    (ALL) ALL\n")
     static let pmsetG = "/usr/bin/pmset -g"
     static let on = "/usr/bin/sudo -n /usr/bin/pmset -a disablesleep 1"
     static let off = "/usr/bin/sudo -n /usr/bin/pmset -a disablesleep 0"
@@ -16,8 +17,7 @@ import Testing
     /// A runner with access granted.
     func grantedRunner(sleep sequence: [CommandResult]) -> FakeCommandRunner {
         let r = FakeCommandRunner()
-        r.responses[Self.c0] = CommandResult(exitCode: 0)
-        r.responses[Self.c1] = CommandResult(exitCode: 0)
+        r.responses[Self.list] = Self.listingGranted
         r.sequences[Self.pmsetG] = sequence
         return r
     }
@@ -99,11 +99,10 @@ final class FakePrivileged: PrivilegeActions {
 
     @Test func grantPassesUserAndRechecksAccess() {
         let runner = FakeCommandRunner()
-        runner.responses[S.c0] = CommandResult(exitCode: 1)
-        runner.responses[S.c1] = CommandResult(exitCode: 1)
+        runner.responses[S.list] = S.listingDenied
         runner.responses[S.pmsetG] = S.pmset(0)
         let priv = FakePrivileged()
-        priv.onGrant = { runner.responses[S.c0] = CommandResult(exitCode: 0); runner.responses[S.c1] = CommandResult(exitCode: 0) }
+        priv.onGrant = { runner.responses[S.list] = S.listingGranted }
         let model = StatusModel(runner: runner, privileged: priv, userName: "alice")
         model.refresh(); model.waitUntilIdle()
         #expect(model.snapshot.icon == .blocked)
@@ -127,8 +126,7 @@ final class FakePrivileged: PrivilegeActions {
 
     @Test func revokeReturnsToBlocked() {
         let runner = FakeCommandRunner()
-        runner.responses[S.c0] = CommandResult(exitCode: 0)
-        runner.responses[S.c1] = CommandResult(exitCode: 0)
+        runner.responses[S.list] = S.listingGranted
         runner.responses[S.pmsetG] = S.pmset(0)
         let priv = FakePrivileged()
         priv.onGrant = {}
@@ -136,7 +134,7 @@ final class FakePrivileged: PrivilegeActions {
         model.refresh(); model.waitUntilIdle()
         #expect(model.snapshot.icon == .sleep)
 
-        runner.responses[S.c0] = CommandResult(exitCode: 1)
+        runner.responses[S.list] = S.listingDenied
         model.revoke(); model.waitUntilIdle()
         #expect(priv.revokes == 1)
         #expect(model.snapshot.icon == .blocked)

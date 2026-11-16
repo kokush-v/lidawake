@@ -7,10 +7,7 @@ import Testing
 
     func runner(sleep: [CommandResult], granted: Bool = true) -> FakeCommandRunner {
         let r = FakeCommandRunner()
-        let ok = CommandResult(exitCode: 0)
-        let denied = CommandResult(exitCode: 1, stderr: "a password is required")
-        r.responses[S.c0] = granted ? ok : denied
-        r.responses[S.c1] = granted ? ok : denied
+        r.responses[S.list] = granted ? S.listingGranted : S.listingDenied
         r.sequences[S.pmsetG] = sleep
         return r
     }
@@ -30,7 +27,7 @@ import Testing
         model.refresh(); model.waitUntilIdle()
         #expect(model.snapshot.icon == .sleep)
 
-        r.responses[S.c0] = CommandResult(exitCode: 1)
+        r.responses[S.list] = S.listingDenied
         model.refresh(); model.waitUntilIdle()
         #expect(model.snapshot.icon == .blocked)
         #expect(model.snapshot.canToggle == false)
