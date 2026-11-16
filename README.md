@@ -26,14 +26,15 @@ open /Applications/LidAwake.app
 ## Use
 
 - **Left click** the icon: switch between ☕️ and 💤 immediately.
-- **Ctrl+click** (or right click): open the panel — state, the access rule, *Grant/Revoke access*,
-  *Launch at login*, a reminder, and *Quit*.
+- **Ctrl+click** (or right click): open the panel. The large icon at the top shows the state and switches the
+  mode when you click it. Below are a reminder while awake, *Launch at login*, an *Access* row (tap it to see the
+  rule in effect and *Revoke access*), and *Quit*.
 - Hover over the icon for a short description of the current state.
 
 ### One-time setup
 
-On first launch the icon is 🔒. Click it; the panel shows exactly what will be allowed. Press **Grant access** and
-confirm with your administrator password in the standard macOS dialog. After that, toggling never asks for a
+On first launch the icon is 🔒. Click it; the panel explains the one-time permission. Press **Show command** to see
+exactly what will be allowed, then **Grant access** and confirm with your administrator password in the standard macOS dialog. After that, toggling never asks for a
 password. **Revoke access** in the panel removes the permission again.
 
 The permission is a sudoers rule that allows exactly two commands for your user, nothing else:

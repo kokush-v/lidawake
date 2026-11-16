@@ -1,14 +1,21 @@
-// Renders Resources/Icons/*.svg into monochrome template PNGs (18pt, @1x and @2x) in Resources/Icons/Menubar.
+// Renders Resources/Icons/*.svg into monochrome template PNGs (@1x and @2x):
+// 18pt menu-bar icons in Resources/Icons/Menubar and 48pt panel hero icons (<name>-large) in Resources/Icons/Panel.
 // Usage: swift scripts/make-icons.swift Resources/Icons
 import AppKit
 
 let root = URL(fileURLWithPath: CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "Resources/Icons")
 let out = root.appendingPathComponent("Menubar")
+let panelOut = root.appendingPathComponent("Panel")
 try? FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
+try? FileManager.default.createDirectory(at: panelOut, withIntermediateDirectories: true)
 
 let names = ["awake", "sleep", "blocked", "error"]
-let canvas: CGFloat = 18   // menu-bar icon size in points
-let glyph: CGFloat = 15    // glyph box inside the canvas
+/// A rendering target: canvas size in points and the glyph box inside it.
+struct Target { let dir: URL; let suffix: String; let canvas: CGFloat; let glyph: CGFloat }
+let targets = [
+    Target(dir: out, suffix: "", canvas: 18, glyph: 15),                // menu bar
+    Target(dir: panelOut, suffix: "-large", canvas: 48, glyph: 40),     // panel hero
+]
 
 func clean(_ svg: String) -> String {
     var s = svg
@@ -17,7 +24,7 @@ func clean(_ svg: String) -> String {
     return s
 }
 
-func render(_ image: NSImage, scale: Int) -> Data? {
+func render(_ image: NSImage, scale: Int, canvas: CGFloat, glyph: CGFloat) -> Data? {
     let px = Int(canvas) * scale
     guard let rep = NSBitmapImageRep(
         bitmapDataPlanes: nil, pixelsWide: px, pixelsHigh: px, bitsPerSample: 8, samplesPerPixel: 4,
@@ -42,10 +49,15 @@ for name in names {
           let image = NSImage(data: Data(clean(text).utf8)), image.size.width > 0 else {
         print("FAILED to load \(name).svg"); exit(1)
     }
-    for scale in [1, 2] {
-        let file = out.appendingPathComponent(scale == 1 ? "\(name).png" : "\(name)@2x.png")
-        guard let data = render(image, scale: scale) else { print("FAILED to render \(name)"); exit(1) }
-        try data.write(to: file)
+    for t in targets {
+        for scale in [1, 2] {
+            let base = name + t.suffix
+            let file = t.dir.appendingPathComponent(scale == 1 ? "\(base).png" : "\(base)@2x.png")
+            guard let data = render(image, scale: scale, canvas: t.canvas, glyph: t.glyph) else {
+                print("FAILED to render \(base)"); exit(1)
+            }
+            try data.write(to: file)
+        }
     }
     print("ok \(name)")
 }

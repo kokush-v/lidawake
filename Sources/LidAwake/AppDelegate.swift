@@ -19,11 +19,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let controller = StatusItemController()
         statusItemController = controller
-        controller.setPanel(NSHostingController(rootView: PanelView(model: panelModel)))
+        let host = NSHostingController(rootView: PanelView(model: panelModel))
+        host.sizingOptions = .preferredContentSize  // the popover follows the panel's height when rows expand
+        controller.setPanel(host)
         controller.canToggle = { [model] in model.snapshot.canToggle }
         controller.onToggle = { [model] in model.toggle() }
         controller.onOpenPanel = { [weak self] in self?.openPanel() }
 
+        panelModel.onToggle = { [model] in model.toggle() }
         panelModel.onGrant = { [model] in model.grant() }
         panelModel.onRevoke = { [model] in model.revoke() }
         panelModel.onQuit = { [weak self] in self?.quit() }
@@ -41,6 +44,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func openPanel() {
         panelModel.snapshot = model.snapshot
         panelModel.reloadLoginState()
+        panelModel.resetExpansion()
         statusItemController?.togglePanel()
         model.refresh()  // never show a stale state when the panel opens
     }
