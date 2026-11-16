@@ -15,6 +15,17 @@ public enum IconState: Equatable {
         }
     }
 
+    /// Name of the monochrome template image (Resources/Icons/Menubar/<name>.png).
+    public var assetName: String {
+        switch self {
+        case .blocked: return "blocked"
+        case .awake: return "awake"
+        case .sleep: return "sleep"
+        case .error: return "error"
+        }
+    }
+
+    /// Text fallback, used when the image is not available.
     public var title: String {
         switch self {
         case .blocked: return "🔒"

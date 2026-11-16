@@ -1,0 +1,12 @@
+import AppKit
+import LidAwakeCore
+
+enum IconAssets {
+    /// Monochrome template image: macOS tints it for light/dark appearance and highlighting.
+    static func image(for icon: IconState) -> NSImage? {
+        guard let image = Bundle.main.image(forResource: icon.assetName) else { return nil }
+        image.size = NSSize(width: 18, height: 18)
+        image.isTemplate = true
+        return image
+    }
+}

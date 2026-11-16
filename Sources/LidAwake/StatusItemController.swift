@@ -43,7 +43,14 @@ final class StatusItemController: NSObject {
 
     func update(icon: IconState) {
         guard let button = statusItem.button else { return }
-        button.title = icon.title
+        if let image = IconAssets.image(for: icon) {
+            button.image = image
+            button.imagePosition = .imageOnly
+            button.title = ""
+        } else {
+            button.image = nil
+            button.title = icon.title  // fallback when running outside the app bundle
+        }
         button.toolTip = icon.tooltip
         button.setAccessibilityLabel(icon.tooltip)
     }

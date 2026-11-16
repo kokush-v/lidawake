@@ -38,7 +38,11 @@ struct PanelView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
-                Text(model.snapshot.icon.title).font(.title2)
+                if let image = IconAssets.image(for: model.snapshot.icon) {
+                    Image(nsImage: image).renderingMode(.template).foregroundColor(.primary)
+                } else {
+                    Text(model.snapshot.icon.title).font(.title2)
+                }
                 Text(stateText).font(.headline).fixedSize(horizontal: false, vertical: true)
             }
 

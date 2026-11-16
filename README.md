@@ -6,10 +6,10 @@ normal sleep.
 
 | Icon | Meaning |
 |------|---------|
-| ☕️ | Awake: the Mac will **not** sleep when the lid is closed |
-| 💤 | Sleep: normal behavior |
-| 🔒 | Access not granted yet (one-time setup needed) |
-| ⚠️ | Access granted, but the sleep state cannot be read |
+| Coffee cup (☕️) | Awake: the Mac will **not** sleep when the lid is closed |
+| Zzz (💤) | Sleep: normal behavior |
+| Lock (🔒) | Access not granted yet (one-time setup needed) |
+| Warning triangle (⚠️) | Access granted, but the sleep state cannot be read |
 
 No Dock icon, no windows — only the menu-bar icon. Works without an external monitor. macOS 13 or later.
 
