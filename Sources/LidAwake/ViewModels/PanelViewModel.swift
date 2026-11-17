@@ -13,12 +13,14 @@ final class PanelViewModel: ObservableObject {
     @Published var loginError: String?
     @Published var accessExpanded = false
     @Published var commandShown = false
+    @Published var autoOffPickerShown = false
 
     let userName = NSUserName()
     var onToggle: () -> Void = {}
     var onGrant: () -> Void = {}
     var onRevoke: () -> Void = {}
     var onQuit: () -> Void = {}
+    var onSetAutoOff: (AutoOff) -> Void = { _ in }
     /// The content's new height and the duration of the animation that caused it (0 = none).
     var onContentHeight: (CGFloat, TimeInterval) -> Void = { _, _ in }
 
@@ -30,6 +32,7 @@ final class PanelViewModel: ObservableObject {
     func resetExpansion() {
         accessExpanded = false
         commandShown = false
+        autoOffPickerShown = false
     }
 
     /// When the last animated expand/collapse started, so the popover can resize in step with it.

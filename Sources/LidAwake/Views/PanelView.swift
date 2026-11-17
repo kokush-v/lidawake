@@ -33,6 +33,12 @@ struct PanelView: View {
         }
         .padding(16)
         .frame(width: PanelTheme.width)
+        // Covers the measured content only, so opening it never changes the panel's height.
+        .overlay {
+            if model.autoOffPickerShown {
+                AutoOffOverlay(model: model, motion: motion).transition(.opacity)
+            }
+        }
         .background(GeometryReader { proxy in
             Color.clear.preference(key: ContentHeightKey.self, value: proxy.size.height)
         })

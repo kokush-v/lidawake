@@ -4,7 +4,7 @@ import SwiftUI
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItemController: StatusItemController?
-    private let model = StatusModel(runner: ProcessCommandRunner())
+    private let model = StatusModel(runner: ProcessCommandRunner(), autoOffStore: UserDefaultsAutoOffStore())
     private let panelModel = PanelViewModel()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -34,10 +34,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panelModel.onGrant = { [model] in model.grant() }
         panelModel.onRevoke = { [model] in model.revoke() }
         panelModel.onQuit = { [weak self] in self?.quit() }
+        panelModel.onSetAutoOff = { [model] in model.setAutoOff($0) }
 
         model.onChange = { [panelModel] snapshot in
             DispatchQueue.main.async {
-                controller.update(icon: snapshot.icon)
+                let remaining = snapshot.sleep == .awake
+                    ? snapshot.autoOffDeadline.map { AutoOff.remainingLabel($0.timeIntervalSinceNow) } : nil
+                controller.update(icon: snapshot.icon, autoOffRemaining: remaining)
                 panelModel.apply(snapshot)
             }
         }
@@ -60,7 +63,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NSApp.activate(ignoringOtherApps: true)
             let alert = NSAlert()
             alert.messageText = "Sleep mode is still disabled. Quit anyway?"
-            alert.informativeText = "Your Mac will keep staying awake with the lid closed until you switch it back."
+            var info = "Your Mac will keep staying awake with the lid closed until you switch it back."
+            if model.snapshot.autoOffDeadline != nil { info += " Auto-off will not run while LidAwake is closed." }
+            alert.informativeText = info
             alert.addButton(withTitle: "Quit")
             alert.addButton(withTitle: "Cancel")
             guard alert.runModal() == .alertFirstButtonReturn else { return }

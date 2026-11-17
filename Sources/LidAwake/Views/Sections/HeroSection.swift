@@ -10,6 +10,14 @@ struct HeroSection: View {
     private var icon: IconState { model.snapshot.icon }
     private var presentation: PanelPresentation { PanelPresentation(icon: icon) }
 
+    /// While Awake is counting down, the time left replaces the generic subtitle.
+    private func subtitle(at date: Date) -> String {
+        if icon == .awake, let deadline = model.snapshot.autoOffDeadline {
+            return "Auto-off in \(AutoOff.remainingLabel(deadline.timeIntervalSince(date)))"
+        }
+        return presentation.subtitle
+    }
+
     var body: some View {
         let color = PanelTheme.color(for: presentation.accent)
         return VStack(spacing: 8) {
@@ -28,13 +36,15 @@ struct HeroSection: View {
             .accessibilityLabel(presentation.title)
 
             Text(presentation.title).font(.title3.weight(.semibold)).contentTransition(.opacity).animation(motion, value: icon)
-            Text(presentation.subtitle)
-                .font(.callout)
-                .contentTransition(.opacity)
-                .animation(motion, value: icon)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
+            TimelineView(.everyMinute) { context in
+                Text(subtitle(at: context.date))
+                    .font(.callout)
+                    .contentTransition(.opacity)
+                    .animation(motion, value: icon)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
         .frame(maxWidth: .infinity)
     }

@@ -97,7 +97,7 @@ final class StatusItemController: NSObject {
         popover.performClose(nil)
     }
 
-    func update(icon: IconState) {
+    func update(icon: IconState, autoOffRemaining: String? = nil) {
         guard let button = statusItem.button else { return }
         if let image = IconAssets.image(for: icon) {
             button.image = image
@@ -107,7 +107,7 @@ final class StatusItemController: NSObject {
             button.image = nil
             button.title = icon.title  // fallback when running outside the app bundle
         }
-        button.toolTip = icon.tooltip
+        button.toolTip = autoOffRemaining.map { "\(icon.tooltip)\nAuto-off in \($0)" } ?? icon.tooltip
         button.setAccessibilityLabel(icon.tooltip)
     }
 

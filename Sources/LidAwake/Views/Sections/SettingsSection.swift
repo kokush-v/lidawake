@@ -10,6 +10,8 @@ struct SettingsSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             GroupedRows {
+                autoOffRow
+                Divider()
                 launchRow
                 if case .granted(let rule) = model.snapshot.access {
                     VStack(spacing: 0) {
@@ -24,6 +26,24 @@ struct SettingsSection: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
+    }
+
+    private var autoOffRow: some View {
+        Button {
+            model.toggle(\.autoOffPickerShown, animation: motion)
+        } label: {
+            HStack(spacing: PanelTheme.rowSpacing) {
+                IconTile(color: .orange, image: Image(systemName: "timer"))
+                Text("Auto-off")
+                Spacer()
+                Text(model.snapshot.autoOff.label).foregroundColor(.secondary)
+                Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundColor(.secondary)
+            }
+            .padding(.horizontal, PanelTheme.spacing)
+            .frame(minHeight: PanelTheme.rowMinHeight)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     private var launchRow: some View {

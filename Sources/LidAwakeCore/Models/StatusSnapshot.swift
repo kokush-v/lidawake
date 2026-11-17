@@ -4,6 +4,9 @@ import Foundation
 public struct StatusSnapshot: Equatable {
     public var access: AccessState = .missing
     public var sleep: SleepState = .unknown
+    /// The chosen auto-off duration and, while Awake is counting down, when it ends.
+    public var autoOff: AutoOff = .off
+    public var autoOffDeadline: Date?
     /// Result of the last user action that failed (toggle, grant, revoke).
     public var actionError: String?
 
