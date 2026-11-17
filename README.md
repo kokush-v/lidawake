@@ -54,8 +54,20 @@ Requires macOS 13 (Ventura) or later.
 
 - **Left click** the icon: switch between Awake and Sleep immediately.
 - **Ctrl+click** (or right click): open the panel. Click the large icon at the top to switch the mode, see a reminder
-  while awake, set the *Auto-off* timer, toggle *Launch at login*, expand *Access* to see the rule in effect (and *Revoke access*), or *Quit*.
-- Hover over the icon for a short description of the current state.
+  while awake, set the *Auto-off* timer, toggle *Launch at login*, expand *Access* to see the rule in effect
+  (and *Revoke access*), or *Quit*.
+- Hover over the icon for a short description of the current state (and the time left, if a timer is running).
+
+### Auto-off timer
+
+Open the panel and tap **Auto-off** to pick a time on the wheel: 15 min, 30 min, 1 h, 2 h, 4 h, 8 h, or **Off**
+(the default). Scroll it with the mouse wheel or trackpad, drag it, or click a value.
+
+- The countdown starts when Awake turns on and is shown under the large icon (*Auto-off in 1 h 42 min*).
+  When it ends, Awake switches itself off.
+- Changing the time while Awake is on restarts the countdown from now. Turning Awake off and on again does too.
+- The end time is remembered, so it still counts after LidAwake restarts.
+- It only works while LidAwake is running; if you quit the app, Awake stays on until you switch it off.
 
 ### One-time setup
 
@@ -100,6 +112,9 @@ The mode is the system's `SleepDisabled` setting. Switching runs `sudo -n /usr/b
 State comes only from the system: `pmset -g` (`SleepDisabled`) and `sudo -n -l` (is the rule in effect), refreshed
 every 5 seconds so changes made elsewhere show up too. The icon is never based on what the app last clicked.
 
+The auto-off end time is a stored date. Each refresh compares it with the clock and, once it has passed, runs the same
+`disablesleep 0` command as the switch.
+
 ## FAQ
 
 **Why not just `caffeinate`?**
@@ -128,6 +143,12 @@ make uninstall   # removes the sudoers rule (asks for your password) and deletes
 ## Development
 
 Swift Package with a testable core library (`LidAwakeCore`) and a thin AppKit/SwiftUI app (`LidAwake`).
+
+```
+Sources/LidAwakeCore/   Models/ (states, auto-off, wheel math)  Services/ (system commands, StatusModel, stores)
+Sources/LidAwake/       App/ (entry, menu-bar item)  ViewModels/  Views/ (Sections, Components, Modifiers)  Support/
+Tests/LidAwakeCoreTests/
+```
 
 ```bash
 make test      # unit tests (Swift Testing)
