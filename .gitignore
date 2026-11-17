@@ -7,3 +7,4 @@ Sources/LidAwakeCore/Services/EmbeddedScripts.generated.swift
 .claude/
 .specify/
 specs/
+CLAUDE.md
