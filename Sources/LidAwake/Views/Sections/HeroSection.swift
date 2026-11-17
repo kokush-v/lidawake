@@ -36,8 +36,10 @@ struct HeroSection: View {
             .accessibilityLabel(presentation.title)
 
             Text(presentation.title).font(.title3.weight(.semibold)).contentTransition(.opacity).animation(motion, value: icon)
-            TimelineView(.everyMinute) { context in
-                Text(subtitle(at: context.date))
+            // Ticks fall on whole minutes of the countdown; `context.date` is a scheduled time that can lag
+            // behind the real one, so the label is computed from `Date()`.
+            TimelineView(.periodic(from: model.snapshot.autoOffDeadline ?? Date(timeIntervalSince1970: 0), by: 60)) { _ in
+                Text(subtitle(at: Date()))
                     .font(.callout)
                     .contentTransition(.opacity)
                     .animation(motion, value: icon)

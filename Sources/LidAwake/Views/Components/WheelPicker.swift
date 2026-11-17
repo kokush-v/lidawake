@@ -11,7 +11,7 @@ struct WheelPicker<Item: Hashable>: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @StateObject private var wheel = WheelState()
 
-    private let rowHeight: Double = 36
+    private let rowHeight: Double = 30
     private let visibleRows = 5
 
     private var selectedIndex: Int { items.firstIndex(of: selection) ?? 0 }
@@ -52,7 +52,7 @@ struct WheelPicker<Item: Hashable>: View {
         let distance = Double(index) * rowHeight - wheel.offset
         let look = WheelMath.fade(distance: distance, rowHeight: rowHeight)
         return Text(label(items[index]))
-            .font(.title3.weight(abs(distance) < rowHeight / 2 ? .semibold : .regular))
+            .font(.body.weight(abs(distance) < rowHeight / 2 ? .semibold : .regular))
             .scaleEffect(look.scale)
             .opacity(look.opacity)
             .frame(maxWidth: .infinity)

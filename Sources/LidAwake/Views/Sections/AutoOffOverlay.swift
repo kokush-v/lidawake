@@ -11,16 +11,26 @@ struct AutoOffOverlay: View {
             Color.black.opacity(0.25)
                 .contentShape(Rectangle())
                 .onTapGesture(perform: close)
-            VStack(spacing: 8) {
-                Text("Auto-off").font(.headline)
+            VStack(spacing: 10) {
+                Text("Auto-off").font(.subheadline.weight(.semibold)).foregroundColor(.secondary)
                 WheelPicker(
                     items: AutoOff.allCases,
                     selection: Binding(get: { model.snapshot.autoOff }, set: { model.onSetAutoOff($0) }),
                     label: { $0.label })
-                Button("Done", action: close).keyboardShortcut(.defaultAction)
+                Button(action: close) {
+                    Text("Done")
+                        .font(.callout.weight(.semibold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 30)
+                        .background(PanelTheme.grantButton, in: Capsule())
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .keyboardShortcut(.defaultAction)
             }
-            .padding(14)
-            .frame(width: 260)
+            .padding(12)
+            .frame(width: 200)
             .background(.regularMaterial, in: RoundedRectangle(cornerRadius: PanelTheme.groupCorner, style: .continuous))
             .shadow(color: .black.opacity(0.25), radius: 16, y: 4)
         }
