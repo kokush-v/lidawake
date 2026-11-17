@@ -1,12 +1,18 @@
 <div align="center">
-  <img src="docs/images/lidawake-cover.png" alt="LidAwake: keep your Mac running with the lid closed. One click on, one click off.">
-
-  <br><br>
+  <img src="docs/images/icon.png" width="128" alt="LidAwake app icon">
+  <h1>LidAwake</h1>
+  <p><b>Keep your Mac awake with the lid closed — in one click.</b></p>
 
   <img src="https://img.shields.io/badge/platform-macOS%2013%2B-blue?style=flat-square" alt="Platform: macOS 13+">
   <img src="https://img.shields.io/badge/Swift-5.9-orange?style=flat-square" alt="Swift 5.9">
   <img src="https://img.shields.io/badge/dependencies-none-brightgreen?style=flat-square" alt="No dependencies">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square" alt="MIT license"></a>
+</div>
+
+<br>
+
+<div align="center">
+  <img src="docs/images/panel-awake.png" width="351" alt="LidAwake panel in Awake mode">
 </div>
 
 <br>
