@@ -24,6 +24,7 @@ normal sleep.
 - **One click.** Left-click the menu-bar icon to switch; no windows, no Dock icon.
 - **Honest.** The icon always shows the real system state, never what the app last clicked.
 - **No password after setup.** A one-time permission, limited to exactly two commands (see [Security](#security)).
+- **Auto-off timer.** Optionally switch Awake off by itself after 15 min – 8 h.
 - **Works without an external monitor.**
 - **No third-party code.** Only Swift, SwiftUI/AppKit and system commands.
 
@@ -53,7 +54,7 @@ Requires macOS 13 (Ventura) or later.
 
 - **Left click** the icon: switch between Awake and Sleep immediately.
 - **Ctrl+click** (or right click): open the panel. Click the large icon at the top to switch the mode, see a reminder
-  while awake, toggle *Launch at login*, expand *Access* to see the rule in effect (and *Revoke access*), or *Quit*.
+  while awake, set the *Auto-off* timer, toggle *Launch at login*, expand *Access* to see the rule in effect (and *Revoke access*), or *Quit*.
 - Hover over the icon for a short description of the current state.
 
 ### One-time setup
@@ -85,8 +86,8 @@ Anything running as your user can use that permission to turn the mode on or off
 
 ## Important
 
-- The mode **never turns off by itself.** Before you put the Mac in a bag, switch back to Sleep — otherwise it may
-  overheat and drain the battery.
+- The mode turns off by itself only if you pick an *Auto-off* time (the default is *Off*), and only while LidAwake is
+  running. Before you put the Mac in a bag, switch back to Sleep — otherwise it may overheat and drain the battery.
 - After a restart the mode can still be on while LidAwake is not running, so there is no icon. Turn on
   **Launch at login** in the panel to always see the state.
 - Quitting LidAwake does not change the mode; if Awake is on, the app asks for confirmation first.
@@ -114,7 +115,7 @@ A closed MacBook that never sleeps can get hot and run its battery down. Use it 
 back to Sleep before packing the laptop.
 
 **Does it start on its own?**
-Only if you turn on *Launch at login*. The mode itself is never switched on or off automatically.
+Only if you turn on *Launch at login*. The mode itself is never switched on automatically; it switches off by itself only if you set an *Auto-off* time.
 
 ## Uninstall
 
