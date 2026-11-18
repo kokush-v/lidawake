@@ -1,0 +1,35 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test
+        run: make test
+
+      - name: Build
+        run: VERSION="${GITHUB_REF_NAME#v}" make build
+
+      - name: Package
+        run: scripts/package-release.sh "${GITHUB_REF_NAME#v}"
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          flags="--generate-notes"
+          case "$version" in *-*) flags="$flags --prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" \
+            "build/LidAwake-$version.zip" \
+            "build/LidAwake-$version.zip.sha256" \
+            --title "$GITHUB_REF_NAME" $flags
