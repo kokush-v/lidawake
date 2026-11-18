@@ -33,3 +33,25 @@ jobs:
             "build/LidAwake-$version.zip" \
             "build/LidAwake-$version.zip.sha256" \
             --title "$GITHUB_REF_NAME" $flags
+
+      - name: Check out Homebrew tap
+        if: ${{ !contains(github.ref_name, '-') }}
+        uses: actions/checkout@v4
+        with:
+          repository: kokush-v/homebrew-utils
+          token: ${{ secrets.TAP_TOKEN }}
+          path: tap
+
+      - name: Update Homebrew cask
+        if: ${{ !contains(github.ref_name, '-') }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          sha="$(cut -d ' ' -f 1 "build/LidAwake-$version.zip.sha256")"
+          cask="tap/Casks/lidawake.rb"
+          sed -i '' -E "s/^  version \".*\"/  version \"$version\"/; s/^  sha256 \".*\"/  sha256 \"$sha\"/" "$cask"
+          cd tap
+          git diff --quiet && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore: bump lidawake to $version"
+          git push
