@@ -30,8 +30,34 @@ normal sleep.
 
 ## Install
 
-There is no packaged release yet, so build it from source. You need the Xcode Command Line Tools
-(`xcode-select --install`).
+Requires macOS 13 (Ventura) or later. Pick one of three ways.
+
+### Homebrew
+
+```bash
+brew tap kokush-v/utils
+brew install --cask lidawake
+```
+
+Recent Homebrew versions may ask you to trust the tap first: `brew trust kokush-v/utils`. Homebrew also clears the
+download quarantine flag, so macOS does not block the first launch. Update later with `brew upgrade --cask lidawake`.
+
+### Download the zip
+
+1. Download `LidAwake-<version>.zip` from the [latest release](https://github.com/kokush-v/lidawake/releases/latest)
+   (a universal build for Apple Silicon and Intel). Optionally verify it:
+   `shasum -a 256 -c LidAwake-<version>.zip.sha256`.
+2. Unzip it and move `LidAwake.app` to `/Applications`.
+3. The app is signed ad-hoc, not notarized by Apple, so macOS blocks the first launch. Either open
+   **System Settings → Privacy & Security** and press **Open Anyway**, or clear the quarantine flag once:
+
+   ```bash
+   xattr -dr com.apple.quarantine /Applications/LidAwake.app
+   ```
+
+### Build from source
+
+You need the Xcode Command Line Tools (`xcode-select --install`).
 
 ```bash
 git clone https://github.com/kokush-v/lidawake.git
@@ -40,8 +66,6 @@ make test      # optional: run the unit tests
 make install   # build, sign (ad-hoc) and copy to /Applications
 open /Applications/LidAwake.app
 ```
-
-Requires macOS 13 (Ventura) or later.
 
 ## Use
 
@@ -91,8 +115,8 @@ The rule allows exactly two commands for your user, nothing else:
   The whole sudoers configuration is validated again afterwards, and the rule is removed if anything is wrong.
 - The app embeds the text of the grant/revoke scripts at build time and runs that text through the standard macOS
   administrator prompt; it never runs a script file from disk and never stores your password.
-- Setup and revoke only happen when you press the button. You can inspect the rule any time:
-  `sudo cat /etc/sudoers.d/lidawake`.
+- Setup and revoke only happen when you press the button, or when you run `brew uninstall --cask lidawake` /
+  `make uninstall`, which remove the rule. You can inspect the rule any time: `sudo cat /etc/sudoers.d/lidawake`.
 
 Anything running as your user can use that permission to turn the mode on or off — and nothing more.
 
@@ -134,11 +158,29 @@ Only if you turn on *Launch at login*. The mode itself is never switched on auto
 
 ## Uninstall
 
-Turn off *Launch at login* in the panel, then:
+Switch back to Sleep first, so the Mac goes back to normal sleep, and turn off *Launch at login* in the panel.
+Then, depending on how you installed it:
+
+**Homebrew**
+
+```bash
+brew uninstall --cask lidawake
+```
+
+This quits the app, removes the login item, sets the sleep setting back to normal (`disablesleep 0`), removes the
+sudoers rule (asks for your password) and deletes the app.
+
+**Zip or source build**
+
+Press **Revoke access** in the panel to remove the sudoers rule, quit LidAwake and delete
+`/Applications/LidAwake.app`. From a source checkout, the same in one command:
 
 ```bash
 make uninstall   # removes the sudoers rule (asks for your password) and deletes the app
 ```
+
+`make uninstall` does not change the sleep setting. If the mode was on, switch to Sleep first, or run
+`sudo pmset -a disablesleep 0` afterwards.
 
 ## Development
 
