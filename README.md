@@ -24,6 +24,8 @@ normal sleep.
 - **One click.** Left-click the menu-bar icon to switch; no windows, no Dock icon.
 - **Honest.** The icon always shows the real system state, never what the app last clicked.
 - **No password after setup.** A one-time permission, limited to exactly two commands (see [Security](#security)).
+- **Stays on and unlocked.** While Awake is on, the display does not dim, the screen saver does not start and the Mac
+  does not lock or sleep because you stopped using it (see [Important](#important)).
 - **Auto-off timer.** Optionally switch Awake off by itself after 15 min – 8 h.
 - **Works without an external monitor.**
 - **No third-party code.** Only Swift, SwiftUI/AppKit and system commands.
@@ -124,6 +126,12 @@ Anything running as your user can use that permission to turn the mode on or off
 
 - The mode turns off by itself only if you pick an *Auto-off* time (the default is *Off*), and only while LidAwake is
   running. Before you put the Mac in a bag, switch back to Sleep — otherwise it may overheat and drain the battery.
+- While Awake is on, an unattended Mac **stays on and unlocked**: the display does not turn off, the screen saver
+  does not start and the Mac does not lock from inactivity, so anyone at the keyboard can use it. A screen that stays
+  on also uses more battery, on battery power too. Manual locking (Ctrl+Cmd+Q) and what happens when you close the
+  lid are unchanged. When the Auto-off timer switches Awake off, the screen turns off once your display-off
+  time has passed since you last touched the Mac (at once if you have already been away that long), and locks as your
+  system settings dictate. If you use the Mac in the meantime, nothing extra happens.
 - After a restart the mode can still be on while LidAwake is not running, so there is no icon. Turn on
   **Launch at login** in the panel to always see the state.
 - Quitting LidAwake does not change the mode; if Awake is on, the app asks for confirmation first.
@@ -135,6 +143,11 @@ The mode is the system's `SleepDisabled` setting. Switching runs `sudo -n /usr/b
 
 State comes only from the system: `pmset -g` (`SleepDisabled`) and `sudo -n -l` (is the rule in effect), refreshed
 every 5 seconds so changes made elsewhere show up too. The icon is never based on what the app last clicked.
+
+While `SleepDisabled` is `1`, LidAwake also holds a standard macOS power assertion (`PreventUserIdleDisplaySleep`,
+named `LidAwake: Awake mode`), the same kind of request `caffeinate -d` makes. It needs no extra permission, changes no
+setting and follows the real state on every refresh. See it with `pmset -g assertions | grep LidAwake`. It belongs to
+the running app: if LidAwake quits, the idle protection ends with it while the setting stays as it was.
 
 The auto-off end time is a stored date. Each refresh compares it with the clock and, once it has passed, runs the same
 `disablesleep 0` command as the switch.
