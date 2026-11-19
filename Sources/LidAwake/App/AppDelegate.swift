@@ -4,7 +4,9 @@ import SwiftUI
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItemController: StatusItemController?
-    private let model = StatusModel(runner: ProcessCommandRunner(), autoOffStore: UserDefaultsAutoOffStore())
+    private let model = StatusModel(
+        runner: ProcessCommandRunner(), autoOffStore: UserDefaultsAutoOffStore(), assertions: IOKitSleepAssertions(),
+        idle: SessionUserIdleSource())
     private let panelModel = PanelViewModel()
 
     func applicationDidFinishLaunching(_ notification: Notification) {

@@ -7,6 +7,8 @@ public final class StatusModel {
     private let privileged: PrivilegeActions
     private let userName: String
     private let autoOffStore: AutoOffStore
+    private let assertions: SleepAssertions
+    private let idle: UserIdleSource
     private let now: () -> Date
     private let queue = DispatchQueue(label: "lidawake.status-model")
     private let lock = NSLock()
@@ -19,12 +21,16 @@ public final class StatusModel {
         privileged: PrivilegeActions? = nil,
         userName: String = NSUserName(),
         autoOffStore: AutoOffStore = MemoryAutoOffStore(),
+        assertions: SleepAssertions = NoSleepAssertions(),
+        idle: UserIdleSource = NoUserIdleSource(),
         now: @escaping () -> Date = Date.init
     ) {
         self.runner = runner
         self.privileged = privileged ?? PrivilegeInstaller(runner: runner)
         self.userName = userName
         self.autoOffStore = autoOffStore
+        self.assertions = assertions
+        self.idle = idle
         self.now = now
         _snapshot.autoOff = autoOffStore.selection
         _snapshot.autoOffDeadline = autoOffStore.deadline
@@ -38,7 +44,8 @@ public final class StatusModel {
     /// Blocks until queued work has finished (used by tests).
     public func waitUntilIdle() { queue.sync {} }
 
-    /// Re-reads access and sleep state. Never changes any system setting.
+    /// Re-reads access and sleep state. Never changes the mode or a system setting; it only keeps the app's own
+    /// keep-awake request in step with the state it read.
     public func refresh() {
         queue.async { self.readState() }
     }
@@ -46,7 +53,7 @@ public final class StatusModel {
     private var timer: DispatchSourceTimer?
 
     /// Reads the real state periodically so changes made outside the app show up.
-    /// The timer only reads; it never changes any setting.
+    /// The timer never changes the mode or a system setting; it only keeps the app's own keep-awake request in step.
     public func startPolling(interval: TimeInterval = 5) {
         queue.async { [weak self] in
             guard let self else { return }
@@ -132,6 +139,30 @@ public final class StatusModel {
         let sleep = SleepState.read(using: runner)
         update { $0.access = access; $0.sleep = sleep }
         enforceAutoOff()
+        syncAssertions()
+    }
+
+    static let holdFailedMessage = "Could not keep the screen awake."
+
+    /// Holds the keep-awake request exactly while the system reports Awake (never what was last requested).
+    private func syncAssertions() {
+        if snapshot.sleep == .awake {
+            cancelPendingDisplayOff()
+            guard !assertions.isHeld else { return }
+            if assertions.hold() {
+                clearHoldError()
+            } else if snapshot.actionError != Self.holdFailedMessage {
+                update { $0.actionError = Self.holdFailedMessage }
+            }
+        } else {
+            if assertions.isHeld { assertions.release() }
+            clearHoldError()
+        }
+    }
+
+    /// Clears only this feature's own message, never an unrelated error.
+    private func clearHoldError() {
+        if snapshot.actionError == Self.holdFailedMessage { update { $0.actionError = nil } }
     }
 
     private func setSleepDisabled(_ on: Bool) -> CommandResult {
@@ -158,8 +189,11 @@ public final class StatusModel {
 
     private func switchOffAtDeadline() {
         let result = setSleepDisabled(false)
-        let sleep = SleepState.read(using: runner)
+        let reading = runner.run(SleepState.pmsetPath, ["-g"])
+        let sleep = reading.succeeded ? SleepState.parse(pmsetOutput: reading.stdout) : .unknown
         update { $0.sleep = sleep }
+        syncAssertions()
+        if result.succeeded && sleep == .sleep { turnDisplayOffIfIdle(pmsetOutput: reading.stdout) }
         if sleep == .awake {
             // Still awake (the command failed): report it and count again rather than retrying every poll.
             startCountdown()
@@ -168,6 +202,40 @@ public final class StatusModel {
             autoOffStore.deadline = nil
             if !result.succeeded { update { $0.actionError = "Could not switch Awake off automatically." } }
         }
+    }
+
+    private var displayOffTimer: DispatchSourceTimer?
+
+    /// Slack for the idle clock when the display-off timer fires.
+    private static let idleTolerance: TimeInterval = 0.5
+
+    /// After the timer ended Awake, macOS restarts the full display-off countdown. Turn the display off when it would
+    /// have gone off anyway: now if the user has already been idle that long, otherwise once the rest has passed
+    /// (unless they touch the Mac first). Best effort: a failure is ignored.
+    private func turnDisplayOffIfIdle(pmsetOutput: String) {
+        guard let timeout = DisplaySleepTimeout.parse(pmsetOutput: pmsetOutput), timeout > 0 else { return }
+        let idleFor = idle.secondsSinceLastInput()
+        if idleFor >= timeout {
+            _ = runner.run(SleepState.pmsetPath, ["displaysleepnow"])
+            return
+        }
+        cancelPendingDisplayOff()
+        let t = DispatchSource.makeTimerSource(queue: queue)
+        t.schedule(deadline: .now() + (timeout - idleFor), leeway: .milliseconds(100))
+        t.setEventHandler { [weak self] in
+            guard let self else { return }
+            self.cancelPendingDisplayOff()
+            guard self.snapshot.sleep != .awake,
+                  self.idle.secondsSinceLastInput() >= timeout - Self.idleTolerance else { return }
+            _ = self.runner.run(SleepState.pmsetPath, ["displaysleepnow"])
+        }
+        t.resume()
+        displayOffTimer = t
+    }
+
+    private func cancelPendingDisplayOff() {
+        displayOffTimer?.cancel()
+        displayOffTimer = nil
     }
 
     /// Mirrors the store into the snapshot and arms a one-shot timer for the deadline.
